@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gooseworx Bluesky Archive</title>
+    <style>
+        :root {
+            --bsky-blue: #0085ff;
+            --bsky-bg: #151d27;
+            --bsky-card-bg: #1c2732;
+            --text-main: #ffffff;
+            --text-muted: #8899a6;
+            --border-color: #2a3a47;
+            --hover-bg: #1e2a36;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bsky-bg);
+            color: var(--text-main);
+            padding: 0;
+        }
+
+        /* Top Navigation Bar */
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: var(--bsky-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .nav-content {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+        }
+
+        .bsky-logo {
+            font-weight: 800;
+            font-size: 22px;
+            color: var(--bsky-blue);
+            text-decoration: none;
+        }
+
+        /* Container & Layout */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        /* Profile Header with Banner */
+        .profile-header {
+            background: var(--bsky-card-bg);
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .banner-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+            background-color: #1a242f;
+        }
+
+        .profile-main {
+            padding: 0 16px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--bsky-bg);
+            background-color: #ccc;
+            margin-top: -45px;
+            z-index: 2;
+            margin-bottom: 10px;
+        }
+
+        .profile-info h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .profile-handle {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin: 2px 0 10px 0;
+        }
+
+        .profile-stats-row {
+            display: flex;
+            gap: 16px;
+            margin: 12px 0;
+            font-size: 15px;
+        }
+
+        .stat-block {
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-right: 4px;
+        }
+
+        .profile-bio {
+            color: var(--text-main);
+            line-height: 1.45;
+            font-size: 15px;
+            white-space: pre-wrap;
+            margin-top: 4px;
+        }
+
+        /* Controls Block */
+        .controls {
+            background: var(--bsky-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-bar {
+            width: calc(100% - 32px);
+            margin: 12px 16px;
+            padding: 10px 16px;
+            background-color: var(--bsky-card-bg);
+            border: 1px solid transparent;
+            border-radius: 20px;
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+        }
+
+        .search-bar:focus {
+            border-color: var(--bsky-blue);
+        }
+
+        .filter-tabs {
+            display: flex;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 14px 0;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.15s;
+        }
+
+        .tab.active {
+            color: var(--text-main);
+            border-bottom-color: var(--bsky-blue);
+        }
+
+        .tab:hover:not(.active) {
+            background-color: var(--hover-bg);
+        }
+
+        /* Post Cards */
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            background: var(--bsky-bg);
+        }
+
+        .post-card {
+            display: flex;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .post-card:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .post-avatar-col {
+            flex-shrink: 0;
+        }
+
+        .post-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #ccc;
+        }
+
+        .post-main-col {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 2px;
+        }
+
+        .display-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        .handle, .timestamp {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .timestamp::before {
+            content: "·";
+            margin-right: 4px;
+            margin-left: 4px;
+        }
+
+        .post-content {
+            line-height: 1.45;
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .post-content p, .post-content div {
+            margin: 0;
+            padding: 4px 0;
+        }
+
+        .post-content img, .post-content video {
+            width: 100%;
+            max-height: 360px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+
+        .quote-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .post-footer {
+            margin-top: 10px;
+            display: flex;
+            max-width: 400px;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-icon {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* --- MAXIMIZED VIEW MODAL --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--bsky-bg);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 600px;
+            height: 90vh;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .modal-main-feed {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-post-target {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-comments-header {
+            padding: 12px 16px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 15px;
+            background: var(--bsky-card-bg);
+            color: var(--text-main);
+        }
+
+        .reply-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--bsky-card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 22px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1010;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal-btn:hover {
+            background: var(--hover-bg);
+        }
+
+        @media (max-width: 620px) {
+            .modal-box {
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav-bar">
+    <div class="nav-content">
+        <a href="#" class="bsky-logo">🦋 bsky</a>
+        <span style="font-size: 14px; font-weight: 700; color: var(--text-muted);">Gooseworx Archiver</span>
+    </div>
+</nav>
+
+<div class="container">
+    <header class="profile-header">
+        <img src="gooseworx_images/bafkreieb7qqo67erjqqnvnw4jk6fbbrd6h6uhnjkj6ppc4wmnhosro2mwu-2.webp" class="banner-img" onerror="this.style.display='none'">
+        <div class="profile-main">
+            <img src="gooseworx_images/bafkreicgsbx3dhsvhl3ztkemp6b3hyxyggbosdjqaj276gb23vh53zuryi.webp" class="avatar" onerror="this.src='gooseworx_images/bluesky_logo.jpg'">
+            <div class="profile-info">
+                <h1>they made gooseworx</h1>
+                <div class="profile-handle">@gooseworx.bsky.social</div>
+                
+                <div class="profile-stats-row">
+                    <span class="stat-block"><span class="stat-value">140.7K</span>followers</span>
+                    <span class="stat-block"><span class="stat-value">139</span>following</span>
+                    <span class="stat-block"><span class="stat-value">412</span>posts</span>
+                </div>
+                
+                <p class="profile-bio">creator of Bright(2017) starring will smith and joel edgerton</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <input type="text" id="search" class="search-bar" placeholder="Search posts...">
+        <div class="filter-tabs">
+            <div class="tab active" data-filter="all">Posts</div>
+            <div class="tab" data-filter="media">Media</div>
+            <div class="tab" data-filter="videos">Videos</div>
+        </div>
+    </div>
+
+    <main id="posts" class="post-list">
+        <div style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 15px;">Loading archive feed...</div>
+    </main>
+</div>
+
+<div class="modal-backdrop" id="postModal" onclick="closeModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <button class="close-modal-btn" onclick="closeModal(event, true)">&times;</button>
+        <div class="modal-main-feed">
+            <div class="modal-post-target" id="modalContent"></div>
+            <div class="modal-comments-header" id="modalCommentsHeader">Thread replies</div>
+            <div class="modal-comments-list" id="modalCommentsList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let archiveData = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    const BRAND_LOGO_AVATAR = "gooseworx_images/bluesky_logo.jpg";
+    const GOOSE_AVATAR = "gooseworx_images/bafkreicgsbx3dhsvhl3ztkemp6b3hyxyggbosdjqaj276gb23vh53zuryi.webp";
+
+    const ICONS = {
+        reply: `<svg class="action-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+        repost: `<svg class="action-icon" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 23l-4-4 4-4M21 5H9a4 4 0 0 0-4 4v3M3 19h12a4 4 0 0 0 4-4v-3"/></svg>`,
+        like: `<svg class="action-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+    };
+
+    async function loadArchive() {
+        try {
+            const response = await fetch('bsky_archives.json');
+            archiveData = await response.json();
+            renderPosts();
+        } catch (error) {
+            document.getElementById('posts').innerHTML = `<div style="color: #ff4a4a; padding: 20px; text-align:center; font-size:15px;">Error reading JSON source document.</div>`;
+        }
+    }
+
+    function formatTime(isoString) {
+        if (!isoString) return "";
+        const date = new Date(isoString);
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
+    function generatePostHTML(post, isExpandedView = false) {
+        const author = post.author || {};
+        const record = post.record || {};
+        const displayName = author.displayName || author.handle || "User";
+        const handle = author.handle ? `@${author.handle}` : "";
+        const postText = record.text || "";
+        
+        // Strict mapping check: fallback to logo unless handle explicitly contains target keyword
+        let avatarSrc = BRAND_LOGO_AVATAR;
+        if (author.handle && author.handle.toLowerCase().includes("gooseworx")) {
+            avatarSrc = GOOSE_AVATAR;
+        }
+
+        let mediaHTML = '';
+        if (post.local_images && post.local_images.length > 0) {
+            post.local_images.forEach(img => {
+                const path = img.local_path || img; 
+                mediaHTML += `<img src="${path}" loading="lazy" onerror="this.style.display='none'">`;
+            });
+        }
+
+        if (post.local_videos && post.local_videos.length > 0) {
+            post.local_videos.forEach(vid => {
+                const path = vid.local_path || vid;
+                mediaHTML += `<video src="${path}" controls preload="metadata" onclick="event.stopPropagation()"></video>`;
+            });
+        }
+
+        let quoteHTML = '';
+        if (post.embed && post.embed.$type === "app.bsky.embed.recordView#view" && post.embed.record) {
+            const qRecord = post.embed.record;
+            quoteHTML = `
+                <div class="quote-container">
+                    <div class="post-header">
+                        <span class="display-name" style="font-size:14px;">${qRecord.author.displayName || qRecord.author.handle}</span>
+                        <span class="handle" style="font-size:13px;">@${qRecord.author.handle}</span>
+                    </div>
+                    <div style="font-size:14px; margin-top:4px; color:rgba(255,255,255,0.9);">${qRecord.value.text || qRecord.text || ''}</div>
+                </div>`;
+        }
+
+        let footerHTML = '';
+        if (!isExpandedView) {
+            footerHTML = `
+                <div class="post-footer">
+                    <div class="action-item">${ICONS.reply} <span>${post.replyCount || 0}</span></div>
+                    <div class="action-item">${ICONS.repost} <span>${post.repostCount || 0}</span></div>
+                    <div class="action-item">${ICONS.like} <span>${post.likeCount || 0}</span></div>
+                </div>`;
+        }
+
+        return `<div class="post-avatar-col"><img src="${avatarSrc}" class="post-avatar" onerror="this.src='${BRAND_LOGO_AVATAR}'"></div><div class="post-main-col"><div class="post-header"><span class="display-name">${displayName}</span><span class="handle">${handle}</span><span class="timestamp">${formatTime(record.createdAt)}</span></div><div class="post-content">${postText ? `<div>${postText}</div>` : ''}${mediaHTML}${quoteHTML}</div>${footerHTML}</div>`;
+    }
+
+    function renderPosts() {
+        const target = document.getElementById('posts');
+        target.innerHTML = '';
+        
+        const filtered = archiveData.filter(post => {
+            if (currentFilter === 'media') {
+                if (!post.local_images || post.local_images.length === 0) return false;
+            } else if (currentFilter === 'videos') {
+                if (!post.local_videos || post.local_videos.length === 0) return false;
+            }
+
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                const textMatch = (post.record && post.record.text || '').toLowerCase().includes(query);
+                const nameMatch = (post.author && post.author.displayName || '').toLowerCase().includes(query);
+                return textMatch || nameMatch;
+            }
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            target.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 15px;">No posts found.</div>`;
+            return;
+        }
+
+        filtered.forEach(post => {
+            const card = document.createElement('article');
+            card.className = 'post-card';
+            card.innerHTML = generatePostHTML(post, false);
+            card.addEventListener('click', () => maximizePost(post));
+            target.appendChild(card);
+        });
+    }
+
+    window.maximizePost = function(post) {
+        const modalContent = document.getElementById('modalContent');
+        modalContent.innerHTML = '';
+        
+        const topItem = document.createElement('div');
+        topItem.className = 'post-card';
+        topItem.style.borderBottom = 'none';
+        topItem.style.cursor = 'default';
+        topItem.style.backgroundColor = 'transparent';
+        topItem.innerHTML = generatePostHTML(post, true);
+        modalContent.appendChild(topItem);
+
+        document.getElementById('modalCommentsHeader').innerHTML = `💬 Thread replies (${post.replyCount || 0})`;
+        
+        const commentsList = document.getElementById('modalCommentsList');
+        commentsList.innerHTML = '';
+
+        if (!post.replies || post.replies.length === 0) {
+            commentsList.innerHTML = '<div style="color:var(--text-muted); font-size:14px; text-align:center; padding:30px 16px;">No replies recorded.</div>';
+        } else {
+            post.replies.forEach(reply => {
+                const row = document.createElement('div');
+                row.className = 'reply-item';
+                
+                const rAuthor = reply.author || {};
+                const rRecord = reply.record || {};
+                
+                let repAvatar = BRAND_LOGO_AVATAR;
+                if (rAuthor.handle && rAuthor.handle.toLowerCase().includes("gooseworx")) {
+                    repAvatar = GOOSE_AVATAR;
+                }
+
+                row.innerHTML = `
+                    <div class="post-avatar-col">
+                        <img src="${repAvatar}" class="post-avatar" onerror="this.src='${BRAND_LOGO_AVATAR}'">
+                    </div>
+                    <div class="post-main-col">
+                        <div class="post-header">
+                            <span class="display-name">${rAuthor.displayName || rAuthor.handle || "User"}</span>
+                            <span class="handle">@${rAuthor.handle || ""}</span>
+                            <span class="timestamp">${formatTime(rRecord.createdAt)}</span>
+                        </div>
+                        <div class="post-content" style="font-size: 14px;">${rRecord.text || ""}</div>
+                    </div>
+                `;
+                commentsList.appendChild(row);
+            });
+        }
+        
+        document.getElementById('postModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    window.closeModal = function(event, forced = false) {
+        if (forced || event.target.classList.contains('modal-backdrop')) {
+            document.getElementById('postModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    document.getElementById('search').addEventListener('input', (e) => { searchQuery = e.target.value; renderPosts(); });
+    
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            currentFilter = e.target.getAttribute('data-filter');
+            renderPosts();
+        });
+    });
+
+    window.addEventListener('DOMContentLoaded', loadArchive);
+</script>
+</body>
+</html>
